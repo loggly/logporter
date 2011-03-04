@@ -15,7 +15,7 @@ module Log::Protocol::Syslog3164
     hostname = "(?<hostname>[A-Za-z0-9_.:]+)"
     header = timestamp + " " + hostname
     message = "(?<message>[ -~]+)"  # ascii 32 to 126
-    re = "#{pri}#{header} #{message}"
+    re = "^#{pri}#{header} #{message}$"
 
     if RUBY_VERSION =~ /^1\.8/
       # Ruby 1.8 doesn't support named captures
