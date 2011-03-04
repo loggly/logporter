@@ -5,10 +5,10 @@ require "log/server/connection"
 
 # Given a list of ports, listen on all of them
 inputs = [
-  Log::Server.new(:tcp, :port => 23424, :protocol => :syslog),
-  Log::Server.new(:tcp, :port => 23426, :protocol => :raw),
-  Log::Server.new(:udp, :port => 23424),
-  #Log::Server.new(:tls, :port => 23425),
+  Log::Server.new(:port => 23424, :net => :tcp, :wire => :syslog),
+  Log::Server.new(:port => 23426, :net => :tcp, :wire => :raw),
+  Log::Server.new(:port => 23424, :net => :udp, :wire => :raw),
+  Log::Server.new(:port => 23425, :net => :tls, :wire => :raw),
 ]
 
 EventMachine::run do
