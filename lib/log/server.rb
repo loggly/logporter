@@ -7,10 +7,12 @@ class Log::Server
   attr_reader :tls
   attr_reader :port
   attr_reader :type
+  attr_reader :protocol
 
   def initialize(type, options)
     @type = type
     @port = options.delete(:port) || 514
+    @protocol = options.delete(:protocol) || :raw
 
     if @type == :tls
       @tls = TLSConfig.new

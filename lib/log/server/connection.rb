@@ -28,16 +28,56 @@ class Log::Server::Connection < EventMachine::Connection
     end
     
     @count = 0
-  end
+
+    case @server.protocol
+    when :raw
+      class << self
+        alias_method :receive_line, :receive_line_raw
+      end
+    when :syslog
+      class << self
+        alias_method :receive_line, :receive_line_syslog
+      end
+    else
+      #raise "Unsupported protocol #{@server.protocol}"
+    end
+  end # def post_init
 
   #def ssl_handshake_completed
     # TODO(sissel): validate other pieces of the cert?
     #puts get_peer_cert
   #end
 
-  def receive_line(line)
+  def _receive_line(line)
+    receive_line_raw(line)
+  end
+
+  def receive_line_raw(line)
+    event = Log::Event.new
+    port, address = Socket.unpack_sockaddr_in(get_peername)
+
+    # RFC3164 section 4.3.3 No PRI or Unidentifiable PRI
+    event.pri = "13"  
+
+    # TODO(sissel): Look for an alternative to Time#strftime since it is
+    # insanely slow.
+    event.timestamp = Time.now.strftime("%b %d %H:%M:%S")
+    event.hostname = address
+    event.message = line
+
+    stats
+    #puts event
+  end
+
+  def stats
     @start ||= Time.now
     @count += 1
+    if @count % 10000 == 0
+      puts "Rate: #{@count / (Time.now - @start)}"
+    end
+  end
+
+  def receive_line_syslog(line)
     event = Log::Event.new
     if parse_rfc3164(line, event)
     #elsif parse_rfc5424(line, event)
@@ -51,9 +91,7 @@ class Log::Server::Connection < EventMachine::Connection
       event.message = line
     end
 
-    if @count % 10000 == 0
-      puts "Rate: #{@count / (Time.now - @start)}"
-    end
-    puts event
-  end
+    #puts event
+    stats
+  end # def receive_syslog
 end
