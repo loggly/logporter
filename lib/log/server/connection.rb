@@ -16,7 +16,7 @@ class Log::Server::Connection < EventMachine::Connection
 
     if @server.network == :tls
       if RUBY_PLATFORM == "java"
-        raise "EventMachine doesn't support TLS on JRuby :("
+        $STDERR.puts "Warning... EventMachine doesn't support TLS on JRuby :("
       end
 
       start_tls(
@@ -74,7 +74,7 @@ class Log::Server::Connection < EventMachine::Connection
     # TODO(sissel): Look for an alternative to Time#strftime since it is
     # insanely slow.
     event.pri = "13" # RFC3164 says unknown pri == 13.
-    event.timestamp = Time.now.strftime("%b %d %H:%M:%S")
+    event.timestamp = Time.now
     event.hostname = address
     event.message = line
     event.raw = true
@@ -90,7 +90,7 @@ class Log::Server::Connection < EventMachine::Connection
     else 
       # Unknown message format, add syslog headers.
       event.pri = "13" # RFC3164 says unknown pri == 13.
-      event.timestamp = Time.now.strftime("%b %d %H:%M:%S")
+      event.timestamp = Time.now
       event.hostname = address
       event.message = line
     end
