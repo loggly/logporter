@@ -1,6 +1,6 @@
-require "log/namespace"
+require "logporter/namespace"
 
-class Log::Event
+class LogPorter::Event
   attr_accessor :pri
   attr_accessor :timestamp
   attr_accessor :hostname

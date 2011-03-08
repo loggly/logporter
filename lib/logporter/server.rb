@@ -1,9 +1,9 @@
-require "log/namespace"
-require "log/server/defaulthandler"
+require "logporter/namespace"
+require "logporter/server/defaulthandler"
 
 module Log; end
 
-class Log::Server
+class LogPorter::Server
 
   # Create a new class called 'TLSConfig' which simply acts as a data structure.
   TLSConfig = Struct.new :private_key_file, :cert_chain_file, :verify_peer
@@ -24,7 +24,7 @@ class Log::Server
     @network = options[:net]
     @port = options.delete(:port) || 514
     @wire = options.delete(:wire) || :raw
-    @handler = options.delete(:handler) || Log::Server::DefaultHandler.new
+    @handler = options.delete(:handler) || LogPorter::Server::DefaultHandler.new
 
     if @network == :tls
       @tls = TLSConfig.new
@@ -50,11 +50,13 @@ class Log::Server
   end # def start
 
   def start_udp_server
-    EventMachine::open_datagram_socket "0.0.0.0", @port, Log::Server::Connection, self
+    EventMachine::open_datagram_socket "0.0.0.0", @port,
+      LogPorter::Server::Connection, self
   end # def start_udp
 
   def start_tcp_server
-    EventMachine::start_server "0.0.0.0", @port, Log::Server::Connection, self
+    EventMachine::start_server "0.0.0.0", @port,
+      LogPorter::Server::Connection, self
   end # def start_tcp
 
   def receive_event(event, client_addr, client_port)

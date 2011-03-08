@@ -1,11 +1,11 @@
-require "log/namespace"
+require "logporter/namespace"
 require "eventmachine"
-require "log/protocol/syslog3164"
-require "log/event"
+require "logporter/protocol/syslog3164"
+require "logporter/event"
 require "socket"
 
-class Log::Server::Connection < EventMachine::Connection
-  include Log::Protocol::Syslog3164
+class LogPorter::Server::Connection < EventMachine::Connection
+  include LogPorter::Protocol::Syslog3164
  
   def initialize(server)
     @server = server
@@ -69,7 +69,7 @@ class Log::Server::Connection < EventMachine::Connection
   end
 
   def receive_line_raw(line, address, port)
-    event = Log::Event.new
+    event = LogPorter::Event.new
 
     # TODO(sissel): Look for an alternative to Time#strftime since it is
     # insanely slow.
@@ -84,7 +84,7 @@ class Log::Server::Connection < EventMachine::Connection
   end
 
   def receive_line_syslog(line, address, port)
-    event = Log::Event.new
+    event = LogPorter::Event.new
     if parse_rfc3164(line, event)
     #elsif parse_rfc5424(line, event)
     else 

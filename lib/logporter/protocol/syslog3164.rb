@@ -1,6 +1,6 @@
-require "log/namespace"
+require "logporter/namespace"
 
-module Log::Protocol::Syslog3164
+module LogPorter::Protocol::Syslog3164
   def syslog3164_init
     pri = "(?:<(?<pri>[0-9]{1,3})>)?"
     month = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"

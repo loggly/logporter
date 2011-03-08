@@ -1,10 +1,10 @@
 
 require "test/unit"
-require "log/protocol/syslog3164"
-require "log/event"
+require "logporter/protocol/syslog3164"
+require "logporter/event"
 
 class TestSyslog3164Parser < Test::Unit::TestCase
-  include Log::Protocol::Syslog3164
+  include LogPorter::Protocol::Syslog3164
 
   def test_full_valid_message
     messages = {
@@ -28,7 +28,7 @@ class TestSyslog3164Parser < Test::Unit::TestCase
       },
     }
 
-    event = Log::Event.new
+    event = LogPorter::Event.new
     messages.each do |input, expect|
       assert(parse_rfc3164(input, event), "Parse should return true on a valid message")
 
@@ -61,7 +61,7 @@ class TestSyslog3164Parser < Test::Unit::TestCase
       },
     }
 
-    event = Log::Event.new
+    event = LogPorter::Event.new
     messages.each do |input, expect|
       assert(parse_rfc3164(input, event), "Parse should return true on a valid message")
 
@@ -79,7 +79,7 @@ class TestSyslog3164Parser < Test::Unit::TestCase
       "<123>Mon, Dec 31 22:00:00 ffe0::1 something[12345]: hello world",
     ]
 
-    event = Log::Event.new
+    event = LogPorter::Event.new
     messages.each do |input|
       assert(parse_rfc3164(input, event) == false, "Parse should return false on a invalid message #{input.inspect}")
     end

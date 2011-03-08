@@ -1,8 +1,8 @@
 
 
-require "log/namespace"
+require "logporter/namespace"
 
-class Log::Server::DefaultHandler 
+class LogPorter::Server::DefaultHandler 
   def receive_event(event, server, client_addr, client_port)
     puts "#{client_addr}:#{client_port}(#{server.network}/#{server.wire}) => #{event}"
   end # def receive_event
