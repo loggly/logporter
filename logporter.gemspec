@@ -6,14 +6,14 @@ Gem::Specification.new do |spec|
   end
 
   spec.name = "logporter"
-  spec.version = "0.0.3"
+  spec.version = "0.0.1"
   spec.summary = "logporter - a log server"
   spec.description = "None yet."
   spec.files = files
   spec.require_paths << "lib"
 
   spec.author = "Jordan Sissel"
-  spec.email = "jls@semicomplete.com"
+  spec.email = "jordan@loggly.com"
   spec.homepage = "https://github.com/loggly/logporter"
 end
 
