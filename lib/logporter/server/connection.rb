@@ -1,7 +1,8 @@
-require "logporter/namespace"
 require "eventmachine"
-require "logporter/protocol/syslog3164"
 require "logporter/event"
+require "logporter/namespace"
+require "logporter/protocol/syslog3164"
+require "logporter/server"
 require "socket"
 
 class LogPorter::Server::Connection < EventMachine::Connection
@@ -19,6 +20,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
         $STDERR.puts "Warning... EventMachine doesn't support TLS on JRuby :("
       end
 
+      # Calls EventMachine::Connection#start_tls
       start_tls(
         :private_key_file => @server.tls.private_key_file,
         :cert_chain_file => @server.tls.cert_chain_file,
