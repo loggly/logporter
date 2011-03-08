@@ -1,3 +1,4 @@
+$: << File.join(File.dirname(__FILE__), "lib")
 require "rubygems"
 require "eventmachine"
 require "log/server"
@@ -9,6 +10,7 @@ inputs = [
   Log::Server.new(:port => 23426, :net => :tcp, :wire => :raw),
   Log::Server.new(:port => 23424, :net => :udp, :wire => :raw),
   Log::Server.new(:port => 23425, :net => :tls, :wire => :raw),
+  Log::Server.new(:port => 23427, :net => :tls, :wire => :syslog),
 ]
 
 EventMachine::run do
