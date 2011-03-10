@@ -19,6 +19,10 @@ class LogPorter::Server
   # The wire format (syslog, raw, etc)
   attr_reader :wire
 
+  # Arbitrary attributes for this server. You can store whatever you want here.
+  # This is a hash
+  attr_reader :attributes
+
   # Create a new server to listen with
   # 'options' is a hash of:
   #
@@ -31,6 +35,7 @@ class LogPorter::Server
     @port = options.delete(:port) || 514
     @wire = options.delete(:wire) || :raw
     @handler = options.delete(:handler) || LogPorter::Server::DefaultHandler.new
+    @attributes = options.delete(:attributes) || Hash.new
 
     if @network == :tls
       @tls = TLSConfig.new
@@ -43,6 +48,7 @@ class LogPorter::Server
   end # def initialize
 
   # start the server
+  public
   def start
     # We use next_tick here in case you are invoking this method from outside
     # of EventMachine; this allows you to do this:
@@ -53,12 +59,20 @@ class LogPorter::Server
     #   EventMachine.run()
     EventMachine.next_tick do
       puts "Starting #{@network}/#{@port}"
-      case @network
-        when :udp; start_udp_server
-        when :tcp; start_tcp_server
-        when :tls; start_tcp_server # tls is handled by tcp.
+      begin
+        case @network
+          when :udp; start_udp_server
+          when :tcp; start_tcp_server
+          when :tls; start_tcp_server # tls is handled by tcp.
+          else
+            raise "Unknown network '#{@network}' expected :udp, :tcp, or :tls"
+        end
+      rescue => e
+        if @handler.respond_to?(:receive_exception)
+          @handler.receive_exception(e)
         else
-          raise "Unknown network '#{@network}' expected :udp, :tcp, or :tls"
+          raise e
+        end
       end
     end
   end # def start
