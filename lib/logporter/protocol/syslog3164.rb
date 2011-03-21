@@ -1,4 +1,5 @@
 require "logporter/namespace"
+require "time" # for Time.strptime
 
 module LogPorter::Protocol::Syslog3164
   def syslog3164_init
@@ -32,7 +33,9 @@ module LogPorter::Protocol::Syslog3164
     if m
       # RFC3164 section 4.3.3 No PRI or Unidentifiable PRI
       event.pri = m[1] || "13"
-      event.timestamp = m[2]
+
+      # TODO(sissel): DateTime is a very slow library, consider alternatives?
+      event.timestamp = Time.strptime(m[2], "%b %d %H:%M:%S")
       event.hostname = m[3]
       event.message = m[4]
       return true
