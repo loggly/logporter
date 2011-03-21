@@ -45,7 +45,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
 
     begin
       @client_port, @client_address = Socket.unpack_sockaddr_in(get_peername)
-      puts "New client: #{@client_address}:#{@client_port}"
+      @server.logger.info "New client: #{@client_address}:#{@client_port}"
     rescue => e
       p e
     end
@@ -104,8 +104,8 @@ class LogPorter::Server::Connection < EventMachine::Connection
   def stats
     @start ||= Time.now
     @count += 1
-    if @count % 50000 == 0
-      puts "Rate: #{@count / (Time.now - @start)}"
+    if (Time.now - @start) > 10
+      @server.logger.info "Rate: #{@count / (Time.now - @start)}"
       @start = Time.now
       @count = 0
     end

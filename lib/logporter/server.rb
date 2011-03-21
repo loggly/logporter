@@ -23,6 +23,9 @@ class LogPorter::Server
   # This is a hash
   attr_reader :attributes
 
+  # The logger object
+  attr_accessor :logger
+
   # Create a new server to listen with
   # 'options' is a hash of:
   #
@@ -31,6 +34,7 @@ class LogPorter::Server
   #   :wire => the wire format (:raw, :syslog)
   #   :handler => the handler instance. Must respond to 'receive_event'
   def initialize(options)
+    @logger = Logger.new(STDOUT)
     @network = options[:net]
     @port = options.delete(:port) || 514
     @wire = options.delete(:wire) || :raw
@@ -58,7 +62,7 @@ class LogPorter::Server
     #
     #   EventMachine.run()
     EventMachine.next_tick do
-      puts "Starting #{@network}/#{@port}"
+      @logger.info "Starting #{@network}/#{@port}"
       begin
         case @network
           when :udp; start_udp_server
