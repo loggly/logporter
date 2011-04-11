@@ -1,4 +1,5 @@
-require "eventmachine"
+require "eventmachine" if !(EventMachine::Connection rescue nil)
+require "em/buftok" # for BufferedTokenizer
 require "logporter/event"
 require "logporter/namespace"
 require "logporter/protocol/syslog3164"
@@ -10,6 +11,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
  
   def initialize(server)
     @server = server
+    super()
   end
 
   def post_init
@@ -44,7 +46,12 @@ class LogPorter::Server::Connection < EventMachine::Connection
     end
 
     begin
-      @client_port, @client_address = Socket.unpack_sockaddr_in(get_peername)
+      peer = get_peername
+      if peer.is_a?(Array) # new em-netty::Connection.get_peername
+        @client_address, @client_port = peer
+      else
+        @client_port, @client_address = Socket.unpack_sockaddr_in(peer)
+      end
       puts "New client: #{@client_address}:#{@client_port}"
     rescue => e
       p e
@@ -58,7 +65,12 @@ class LogPorter::Server::Connection < EventMachine::Connection
 
   def receive_data(data)
     if @server.network == :udp
-      client_port, client_address = Socket.unpack_sockaddr_in(get_peername)
+      peer = get_peername
+      if peer.is_a?(Array) # new em-netty::Connection.get_peername
+        client_address, client_port = peer
+      else
+        client_port, client_address = Socket.unpack_sockaddr_in(peer)
+      end
     else
       client_port = @client_port
       client_address = @client_address
