@@ -32,10 +32,10 @@ class LogPorter::Server
   #   :handler => the handler instance. Must respond to 'receive_event'
   def initialize(options)
     @network = options[:net]
-    @port = options.delete(:port) || 514
-    @wire = options.delete(:wire) || :raw
-    @handler = options.delete(:handler) || LogPorter::Server::DefaultHandler.new
-    @attributes = options.delete(:attributes) || Hash.new
+    @port = options[:port] || 514
+    @wire = options[:wire] || :raw
+    @handler = options[:handler] || LogPorter::Server::DefaultHandler.new
+    @attributes = options[:attributes] || Hash.new
 
     if @network == :tls
       @tls = TLSConfig.new

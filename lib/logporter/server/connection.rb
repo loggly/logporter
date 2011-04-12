@@ -32,6 +32,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
     
     @count = 0
 
+    # TODO(sissel): Document why this.
     case @server.wire
       when :raw
         class << self
