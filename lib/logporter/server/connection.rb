@@ -46,7 +46,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
         raise "Unsupported protocol #{@server.protocol}"
     end
 
-    begin
+    if @server.network != :udp
       peer = get_peername
       if peer.is_a?(Array) # new em-netty::Connection.get_peername
         @client_address, @client_port = peer
@@ -54,8 +54,6 @@ class LogPorter::Server::Connection < EventMachine::Connection
         @client_port, @client_address = Socket.unpack_sockaddr_in(peer)
       end
       puts "New client: #{@client_address}:#{@client_port}"
-    rescue => e
-      p e
     end
   end # def post_init
 
