@@ -1,4 +1,5 @@
-require "eventmachine"
+require "eventmachine" if !(EventMachine::Connection rescue nil)
+require "em/buftok" # for BufferedTokenizer
 require "logporter/event"
 require "logporter/namespace"
 require "logporter/protocol/syslog3164"
@@ -10,6 +11,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
  
   def initialize(server)
     @server = server
+    super()
   end
 
   def post_init
@@ -30,6 +32,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
     
     @count = 0
 
+    # TODO(sissel): Document why this.
     case @server.wire
       when :raw
         class << self
@@ -43,14 +46,16 @@ class LogPorter::Server::Connection < EventMachine::Connection
         raise "Unsupported protocol #{@server.protocol}"
     end
 
-    begin
-      if @server.network != :udp
-        @client_port, @client_address = Socket.unpack_sockaddr_in(get_peername)
-        @server.logger.info "New client: #{@client_address}:#{@client_port}"
+      #@server.logger.error "Exception: #{e.inspect}"
+      #@server.logger.error "Backtrace: #{e.backtrace}"
+    if @server.network != :udp
+      peer = get_peername
+      if peer.is_a?(Array) # new em-netty::Connection.get_peername
+        @client_address, @client_port = peer
+      else
+        @client_port, @client_address = Socket.unpack_sockaddr_in(peer)
       end
-    rescue => e
-      @server.logger.error "Exception: #{e.inspect}"
-      @server.logger.error "Backtrace: #{e.backtrace}"
+      puts "New client: #{@client_address}:#{@client_port}"
     end
   end # def post_init
 
@@ -61,7 +66,12 @@ class LogPorter::Server::Connection < EventMachine::Connection
 
   def receive_data(data)
     if @server.network == :udp
-      client_port, client_address = Socket.unpack_sockaddr_in(get_peername)
+      peer = get_peername
+      if peer.is_a?(Array) # new em-netty::Connection.get_peername
+        client_address, client_port = peer
+      else
+        client_port, client_address = Socket.unpack_sockaddr_in(peer)
+      end
     else
       client_port = @client_port
       client_address = @client_address
