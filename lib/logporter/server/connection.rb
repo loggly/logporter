@@ -44,10 +44,13 @@ class LogPorter::Server::Connection < EventMachine::Connection
     end
 
     begin
-      @client_port, @client_address = Socket.unpack_sockaddr_in(get_peername)
-      @server.logger.info "New client: #{@client_address}:#{@client_port}"
+      if @server.network != :udp
+        @client_port, @client_address = Socket.unpack_sockaddr_in(get_peername)
+        @server.logger.info "New client: #{@client_address}:#{@client_port}"
+      end
     rescue => e
-      p e
+      @server.logger.error "Exception: #{e.inspect}"
+      @server.logger.error "Backtrace: #{e.backtrace}"
     end
   end # def post_init
 
