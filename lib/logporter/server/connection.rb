@@ -46,6 +46,8 @@ class LogPorter::Server::Connection < EventMachine::Connection
         raise "Unsupported protocol #{@server.protocol}"
     end
 
+      #@server.logger.error "Exception: #{e.inspect}"
+      #@server.logger.error "Backtrace: #{e.backtrace}"
     if @server.network != :udp
       peer = get_peername
       if peer.is_a?(Array) # new em-netty::Connection.get_peername
@@ -115,8 +117,8 @@ class LogPorter::Server::Connection < EventMachine::Connection
   def stats
     @start ||= Time.now
     @count += 1
-    if @count % 50000 == 0
-      puts "Rate: #{@count / (Time.now - @start)}"
+    if (Time.now - @start) > 10
+      @server.logger.info "Rate: #{@count / (Time.now - @start)}"
       @start = Time.now
       @count = 0
     end

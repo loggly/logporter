@@ -1,6 +1,7 @@
 require "logporter/namespace"
 require "logporter/server/connection"
 require "logporter/server/defaulthandler"
+require "logger"
 
 class LogPorter::Server
 
@@ -23,6 +24,9 @@ class LogPorter::Server
   # This is a hash
   attr_reader :attributes
 
+  # The logger object
+  attr_accessor :logger
+
   # Create a new server to listen with
   # 'options' is a hash of:
   #
@@ -31,6 +35,7 @@ class LogPorter::Server
   #   :wire => the wire format (:raw, :syslog)
   #   :handler => the handler instance. Must respond to 'receive_event'
   def initialize(options)
+    @logger = Logger.new(STDOUT)
     @network = options[:net]
     @port = options[:port] || 514
     @wire = options[:wire] || :raw
@@ -57,25 +62,32 @@ class LogPorter::Server
     #   s.start
     #
     #   EventMachine.run()
-    EventMachine.next_tick do
-      puts "Starting #{@network}/#{@port}"
-      begin
-        case @network
-          when :udp; start_udp_server
-          when :tcp; start_tcp_server
-          when :tls; start_tcp_server # tls is handled by tcp.
-          else
-            raise "Unknown network '#{@network}' expected :udp, :tcp, or :tls"
-        end
-      rescue => e
-        if @handler.respond_to?(:receive_exception)
-          @handler.receive_exception(e)
-        else
-          raise e
-        end
-      end
+    if EventMachine.reactor_running?
+      _start
+    else
+      EventMachine.next_tick { _start }
     end
   end # def start
+
+  private
+  def _start
+    @logger.info "Starting #{@network}/#{@port}"
+    begin
+      case @network
+        when :udp; start_udp_server
+        when :tcp; start_tcp_server
+        when :tls; start_tcp_server # tls is handled by tcp.
+        else
+          raise "Unknown network '#{@network}' expected :udp, :tcp, or :tls"
+      end
+    rescue => e
+      if @handler.respond_to?(:receive_exception)
+        @handler.receive_exception(e, self)
+      else
+        raise e
+      end
+    end
+  end # def _start
 
   private
   def start_udp_server
@@ -93,10 +105,11 @@ class LogPorter::Server
   public
   def receive_event(event, client_addr, client_port)
     @handler.receive_event(event, self, client_addr, client_port)
-  end
+  end # def receive_event
 
   public
   def stop
+    @logger.info "Stopping #{@network}/#{@port}"
     case @network
       when :tcp
         EventMachine::stop_server(@socket)
