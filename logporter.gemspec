@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.name = "logporter"
-  spec.version = "0.1.1"
+  spec.version = "0.1.2"
   spec.summary = "logporter - a log server"
   spec.description = "syslog servlet for ruby"
   spec.add_dependency("eventmachine")
