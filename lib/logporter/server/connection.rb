@@ -42,8 +42,12 @@ class LogPorter::Server::Connection < EventMachine::Connection
         class << self
           alias_method :receive_line, :receive_line_syslog
         end
+      when :syslog_no_parse_time
+        class << self
+          alias_method :receive_line, :receive_line_syslog
+        end
       else
-        raise "Unsupported protocol #{@server.protocol}"
+        raise "Unsupported protocol #{@server.wire}"
     end
 
       #@server.logger.error "Exception: #{e.inspect}"
@@ -72,16 +76,16 @@ class LogPorter::Server::Connection < EventMachine::Connection
       else
         client_port, client_address = Socket.unpack_sockaddr_in(peer)
       end
+      receive_line(data, client_address, client_port)
     else
       client_port = @client_port
       client_address = @client_address
+      @buffer ||= BufferedTokenizer.new
+      @buffer.extract(data).each do |line|
+        receive_line(line.chomp, client_address, client_port)
+      end
     end
-
-    @buffer ||= BufferedTokenizer.new
-    @buffer.extract(data).each do |line|
-      receive_line(line.chomp, client_address, client_port)
-    end
-  end
+  end # def receive_data
 
   def receive_line_raw(line, address, port)
     event = LogPorter::Event.new
@@ -100,7 +104,7 @@ class LogPorter::Server::Connection < EventMachine::Connection
 
   def receive_line_syslog(line, address, port)
     event = LogPorter::Event.new
-    if parse_rfc3164(line, event)
+    if parse_rfc3164(line, event, { :parse_time => (@server.wire == :syslog) })
     #elsif parse_rfc5424(line, event)
     else 
       # Unknown message format, add syslog headers.
