@@ -54,7 +54,7 @@ class TimeParser
 
     return Time.local(*time_array)
   end # def strptime
-end # class Time
+end # class TimeParser
 
 module LogPorter::Protocol::Syslog3164
   def syslog3164_init
