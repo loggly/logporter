@@ -22,7 +22,8 @@ end # class Handler
 
 EventMachine::run do
   input = LogPorter::Server.new(:port => 23424, :net => :udp,
-                                :wire => :syslog_no_parse_time,
+                                #:wire => :syslog_no_parse_time,
+                                :wire => :raw,
                                 :handler => Handler.new)
   input.start
 end # EventMachine::run
