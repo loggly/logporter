@@ -11,6 +11,9 @@ class LogPorter::Server::Connection < EventMachine::Connection
  
   def initialize(server)
     @server = server
+    @parse_opts = { 
+      :parse_time => (@server.wire == :syslog)
+    }
     super()
   end
 
@@ -88,33 +91,34 @@ class LogPorter::Server::Connection < EventMachine::Connection
   end # def receive_data
 
   def receive_line_raw(line, address, port)
-    event = LogPorter::Event.new
+    @event = LogPorter::Event.new
 
     # TODO(sissel): Look for an alternative to Time#strftime since it is
     # insanely slow.
-    event.pri = "13" # RFC3164 says unknown pri == 13.
-    event.timestamp = Time.now
-    event.hostname = address
-    event.message = line
-    event.raw = true
+    @event.pri = "13" # RFC3164 says unknown pri == 13.
+    @event.timestamp = Time.now
+    @event.hostname = address
+    @event.message = line
+    @event.raw = true
 
-    @server.receive_event(event, address, port)
+    @server.receive_event(@event, address, port)
     stats
   end
 
   def receive_line_syslog(line, address, port)
-    event = LogPorter::Event.new
-    if parse_rfc3164(line, event, { :parse_time => (@server.wire == :syslog) })
+    @event ||= LogPorter::Event.new
+
+    if parse_rfc3164(line, @event, @parse_opts)
     #elsif parse_rfc5424(line, event)
     else 
       # Unknown message format, add syslog headers.
-      event.pri = "13" # RFC3164 says unknown pri == 13.
-      event.timestamp = Time.now
-      event.hostname = address
-      event.message = line
+      @event.pri = "13" # RFC3164 says unknown pri == 13.
+      @event.timestamp = Time.now
+      @event.hostname = address
+      @event.message = line
     end
 
-    @server.receive_event(event, address, port)
+    @server.receive_event(@event, address, port)
     stats
   end # def receive_line_syslog
 
